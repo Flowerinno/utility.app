@@ -1,10 +1,10 @@
+import { Anchor } from "@/components";
+import { ROUTES } from "@/lib";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
-import { ROUTES } from "@/lib";
-import { Anchor } from "@/components";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +24,7 @@ export default function RootLayout({
 				<header className="p-2 flex flex-row gap-2 items-center">
 					<h1 className="font-bold text-lg">Utilito| </h1>
 					<Anchor label="EnvToJson" href={ROUTES.envToJson} />
+					<Anchor label="Status" href={ROUTES.status} />
 				</header>
 
 				{children}
