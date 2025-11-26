@@ -46,8 +46,15 @@ const arrayToJson = (arr: string[]) => {
 	const object: Record<string, string> = {};
 
 	arr.forEach((item) => {
-		const [k, v] = item.split("=");
-		object[k.trim()] = v.trim();
+		const split = item.split("=");
+		let key,value;
+		if(split.length > 2) {
+			key = split.shift()!.trim();
+			value = split.join("=").trim();
+		} else {
+			[key, value] = [split[0], split[1]];
+		}
+		object[key.trim()] = value.trim();
 	});
 
 	return object;

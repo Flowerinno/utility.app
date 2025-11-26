@@ -25,6 +25,7 @@ export default function RootLayout({
 					<h1 className="font-bold text-lg">Utilito| </h1>
 					<Anchor label="EnvToJson" href={ROUTES.envToJson} />
 					<Anchor label="Status" href={ROUTES.status} />
+					<Anchor label="Shopify Snippets" href={ROUTES.shopify_snippets} />
 				</header>
 
 				{children}
