@@ -237,7 +237,20 @@ const snippets = [
           total_price_in_dollars: {{ order.total_price | divided_by: 100.0 | json }},
           created_at: "{{ order.created_at}}",
           financial_status: {{ order.financial_status | json }},
-          fulfillment_status: {{ order.fulfillment_status | json }}
+          fulfillment_status: {{ order.fulfillment_status | json }},
+          line_items: [
+            {% for line_item in order.line_items %}
+              {
+                id: {{ line_item.id | json }},
+                title: {{ line_item.title | json }},
+                quantity: {{ line_item.quantity | json }},
+                fulfillment: {
+                  tracking_number: {{ line_item.fulfillment.tracking_number | json }},
+                  tracking_url: {{ line_item.fulfillment.tracking_url | json }}
+                }
+              }{% unless forloop.last %},{% endunless %}
+            {% endfor %}
+          ]
         }{% unless forloop.last %},{% endunless %}
       {% endfor %}
    ]
