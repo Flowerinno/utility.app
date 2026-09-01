@@ -8,11 +8,6 @@ const tools = [
 		href: ROUTES.envToJson,
 	},
 	{
-		title: "API Status",
-		description: "Check health endpoints and response times across your services.",
-		href: ROUTES.status,
-	},
-	{
 		title: "Shopify Snippets",
 		description: "Browse and copy Liquid debug snippets for products, collections, and customers.",
 		href: ROUTES.shopify_snippets,
@@ -36,9 +31,9 @@ export default function Home() {
 					Utilito
 				</h1>
 				<p className="page-subtitle mt-3 text-base sm:text-lg">
-					A focused set of everyday tools — convert env files, monitor API
-					health, grab Shopify Liquid snippets, and fetch Admin API tokens
-					without leaving the browser.
+					A focused set of everyday tools — convert env files, grab Shopify
+					Liquid snippets, and fetch Admin API tokens without leaving the
+					browser.
 				</p>
 			</section>
 
