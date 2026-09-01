@@ -10,7 +10,7 @@ interface AnchorProps {
 }
 
 const defaultStyle =
-	"text-blue-500 hover:underline cursor-pointer transition-colors duration-300 ease-in-out font-bold text-md";
+	"nav-link inline-flex items-center font-semibold text-accent hover:text-accent-hover";
 
 export const Anchor = ({
 	href,
@@ -22,18 +22,18 @@ export const Anchor = ({
 	if (isAnchor) {
 		return (
 			<a
-				className={defaultStyle + " " + style}
+				className={defaultStyle + " " + (style ?? "")}
 				href={href}
 				target="_blank"
 				rel="noopener noreferrer"
 			>
-				{children}
+				{children ?? label}
 			</a>
 		);
 	}
 	return (
-		<Link href={href} className={defaultStyle + " " + style}>
-			<h3>{label}</h3>
+		<Link href={href} className={defaultStyle + " " + (style ?? "")}>
+			{label}
 			{children}
 		</Link>
 	);

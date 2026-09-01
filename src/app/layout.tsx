@@ -1,15 +1,25 @@
-import { Anchor } from "@/components";
-import { ROUTES } from "@/lib";
+import { SiteHeader } from "@/components/SiteHeader";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const sans = Plus_Jakarta_Sans({
+	subsets: ["latin"],
+	variable: "--font-sans",
+	display: "swap",
+});
+
+const mono = JetBrains_Mono({
+	subsets: ["latin"],
+	variable: "--font-mono",
+	display: "swap",
+});
 
 export const metadata: Metadata = {
 	title: "Utilito | App",
+	description: "Useful tools for everyday use.",
 };
 
 export default function RootLayout({
@@ -19,16 +29,18 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body className={inter.className}>
-				<ToastContainer closeOnClick stacked autoClose={1000} hideProgressBar />
-				<header className="p-2 flex flex-row gap-2 items-center">
-					<h1 className="font-bold text-lg">Utilito| </h1>
-					<Anchor label="EnvToJson" href={ROUTES.envToJson} />
-					<Anchor label="Status" href={ROUTES.status} />
-					<Anchor label="Shopify Snippets" href={ROUTES.shopify_snippets} />
-				</header>
-
-				{children}
+			<body className={`${sans.variable} ${mono.variable} font-sans`}>
+				<div className="app-shell">
+					<ToastContainer
+						closeOnClick
+						stacked
+						autoClose={1000}
+						hideProgressBar
+						theme="light"
+					/>
+					<SiteHeader />
+					{children}
+				</div>
 			</body>
 		</html>
 	);
