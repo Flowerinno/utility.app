@@ -8,6 +8,7 @@ const NAV_ITEMS = [
 	{ label: "Env → JSON", href: ROUTES.envToJson },
 	{ label: "Shopify Snippets", href: ROUTES.shopify_snippets },
 	{ label: "Shopify Token", href: ROUTES.shopify_token },
+	{ label: "Verify Token", href: ROUTES.verify_token },
 ] as const;
 
 export function SiteHeader() {
