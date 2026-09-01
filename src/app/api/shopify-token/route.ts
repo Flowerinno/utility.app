@@ -99,14 +99,22 @@ export async function POST(request: NextRequest) {
 		);
 	}
 
+	const rawBody = await shopifyResponse.text();
 	let payload: TokenSuccess | TokenErrorBody | null = null;
 	try {
-		payload = (await shopifyResponse.json()) as TokenSuccess | TokenErrorBody;
+		payload = rawBody ? (JSON.parse(rawBody) as TokenSuccess | TokenErrorBody) : null;
 	} catch {
+		const looksLikeMissingShop =
+			shopifyResponse.status === 404 ||
+			/^not\s*found$/i.test(rawBody.trim()) ||
+			/<html/i.test(rawBody);
+
 		return NextResponse.json(
 			{
-				error: "invalid_response",
-				message: "Shopify returned a non-JSON response.",
+				error: looksLikeMissingShop ? "shop_not_found" : "invalid_response",
+				message: looksLikeMissingShop
+					? "Shop not found. Check the store name (subdomain of *.myshopify.com)."
+					: "Shopify returned an unexpected response.",
 			},
 			{ status: 502 }
 		);
