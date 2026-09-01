@@ -18,6 +18,12 @@ const tools = [
 			"Authorize in Shopify, paste the redirect code, and exchange it for an Admin API access token.",
 		href: ROUTES.shopify_token,
 	},
+	{
+		title: "Verify Token",
+		description:
+			"Check whether a Shopify Admin access token belongs to a given shop via GraphQL.",
+		href: ROUTES.verify_token,
+	},
 ] as const;
 
 export default function Home() {
@@ -32,8 +38,8 @@ export default function Home() {
 				</h1>
 				<p className="page-subtitle mt-3 text-base sm:text-lg">
 					A focused set of everyday tools — convert env files, grab Shopify
-					Liquid snippets, and fetch Admin API tokens without leaving the
-					browser.
+					Liquid snippets, fetch Admin API tokens, and verify tokens against a
+					shop without leaving the browser.
 				</p>
 			</section>
 
