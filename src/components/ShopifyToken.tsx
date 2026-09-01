@@ -1,18 +1,24 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { notify } from "@/utils";
+import { FormEvent, useMemo, useState } from "react";
+import {
+	buildAuthorizeUrl,
+	extractOAuthCode,
+	notify,
+} from "@/utils";
 
 type TokenResult = {
 	access_token: string;
-	scope: string;
-	expires_in: number;
+	scope?: string;
+	expires_in?: number;
 };
 
 type ApiError = {
 	error?: string;
 	message?: string;
 };
+
+const DEFAULT_REDIRECT_URI = "http://localhost";
 
 function formatExpiresIn(seconds: number): string {
 	const hours = Math.floor(seconds / 3600);
@@ -26,9 +32,21 @@ export function ShopifyToken() {
 	const [shop, setShop] = useState("");
 	const [clientId, setClientId] = useState("");
 	const [clientSecret, setClientSecret] = useState("");
+	const [redirectUri, setRedirectUri] = useState(DEFAULT_REDIRECT_URI);
+	const [codeInput, setCodeInput] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [result, setResult] = useState<TokenResult | null>(null);
+
+	const authorizeUrl = useMemo(
+		() => buildAuthorizeUrl(shop, clientId, redirectUri),
+		[shop, clientId, redirectUri]
+	);
+
+	const parsedCode = useMemo(
+		() => extractOAuthCode(codeInput),
+		[codeInput]
+	);
 
 	const copyField = async (label: string, value: string) => {
 		try {
@@ -39,10 +57,26 @@ export function ShopifyToken() {
 		}
 	};
 
-	const onSubmit = async (e: FormEvent) => {
+	const openAuthorizeUrl = () => {
+		if (!authorizeUrl) {
+			notify("Enter shop, client ID, and redirect URI first", "warning");
+			return;
+		}
+		window.open(authorizeUrl, "_blank", "noopener,noreferrer");
+	};
+
+	const onGetToken = async (e: FormEvent) => {
 		e.preventDefault();
 		setError(null);
 		setResult(null);
+
+		if (!parsedCode) {
+			setError(
+				"Paste the authorization code or the full redirect URL containing ?code=..."
+			);
+			return;
+		}
+
 		setLoading(true);
 
 		try {
@@ -53,6 +87,7 @@ export function ShopifyToken() {
 					shop,
 					client_id: clientId,
 					client_secret: clientSecret,
+					code: parsedCode,
 				}),
 			});
 
@@ -82,6 +117,8 @@ export function ShopifyToken() {
 		setShop("");
 		setClientId("");
 		setClientSecret("");
+		setRedirectUri(DEFAULT_REDIRECT_URI);
+		setCodeInput("");
 		setError(null);
 		setResult(null);
 	};
@@ -91,14 +128,15 @@ export function ShopifyToken() {
 			<div className="mb-6">
 				<h1 className="page-title">Shopify Token</h1>
 				<p className="page-subtitle">
-					Exchange Dev Dashboard client credentials for an Admin API access
-					token. Works for apps installed on stores in the same Shopify
-					organization. Tokens last about 24 hours.
+					Authorize in Shopify, then exchange the redirect{" "}
+					<code className="font-mono text-ink">code</code> for an Admin API
+					access token. This is the authorize + code exchange flow — not the
+					single-POST client credentials grant.
 				</p>
 			</div>
 
 			<div className="grid gap-6 lg:grid-cols-2">
-				<form onSubmit={onSubmit} className="panel p-5 sm:p-6 space-y-4">
+				<form onSubmit={onGetToken} className="panel p-5 sm:p-6 space-y-4">
 					<div>
 						<label
 							htmlFor="shop"
@@ -137,7 +175,7 @@ export function ShopifyToken() {
 							value={clientId}
 							onChange={(e) => setClientId(e.target.value)}
 							className="field font-mono"
-							placeholder="From Dev Dashboard → Settings"
+							placeholder="From app settings"
 						/>
 					</div>
 
@@ -161,9 +199,84 @@ export function ShopifyToken() {
 						/>
 					</div>
 
+					<div>
+						<label
+							htmlFor="redirect_uri"
+							className="mb-1.5 block text-sm font-medium text-ink"
+						>
+							Redirect URI
+						</label>
+						<input
+							id="redirect_uri"
+							name="redirect_uri"
+							type="text"
+							required
+							autoComplete="off"
+							spellCheck={false}
+							value={redirectUri}
+							onChange={(e) => setRedirectUri(e.target.value)}
+							className="field font-mono"
+							placeholder="http://localhost"
+						/>
+						<p className="mt-1.5 text-xs text-ink-muted">
+							Must match the redirect URI configured in the app settings.
+						</p>
+					</div>
+
+					<div className="rounded-lg border border-border bg-surface-muted p-3 space-y-2">
+						<p className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">
+							Step 1 — Authorize
+						</p>
+						<p className="text-xs leading-relaxed text-ink-muted break-all">
+							{authorizeUrl ? (
+								<span className="font-mono text-ink">{authorizeUrl}</span>
+							) : (
+								"Enter shop, client ID, and redirect URI to build the authorize URL."
+							)}
+						</p>
+						<button
+							type="button"
+							className="btn-secondary"
+							onClick={openAuthorizeUrl}
+							disabled={!authorizeUrl}
+						>
+							Open authorize URL
+						</button>
+					</div>
+
+					<div>
+						<label
+							htmlFor="code"
+							className="mb-1.5 block text-sm font-medium text-ink"
+						>
+							Authorization code
+						</label>
+						<textarea
+							id="code"
+							name="code"
+							required
+							rows={3}
+							spellCheck={false}
+							value={codeInput}
+							onChange={(e) => setCodeInput(e.target.value)}
+							className="field font-mono resize-y min-h-[5rem]"
+							placeholder="Paste code=... or the full redirect URL (e.g. http://localhost/?code=...)"
+						/>
+						{codeInput.trim() && (
+							<p className="mt-1.5 text-xs text-ink-muted">
+								{parsedCode
+									? `Parsed code: ${parsedCode.slice(0, 12)}${parsedCode.length > 12 ? "…" : ""}`
+									: "No code found in that input."}
+							</p>
+						)}
+					</div>
+
 					<p className="text-xs leading-relaxed text-ink-muted">
-						Uses Shopify&apos;s client credentials grant via a server proxy.
-						Your secret and token are not logged or persisted.
+						Step 2 exchanges the code via a server proxy (
+						<code className="font-mono">client_id</code>,{" "}
+						<code className="font-mono">client_secret</code>,{" "}
+						<code className="font-mono">code</code>). Secrets and tokens are not
+						logged or persisted.
 					</p>
 
 					<div className="flex flex-wrap gap-2 pt-1">
@@ -172,7 +285,7 @@ export function ShopifyToken() {
 							className="btn-primary min-w-[8rem]"
 							disabled={loading}
 						>
-							{loading ? "Requesting…" : "Get access token"}
+							{loading ? "Requesting…" : "Get token"}
 						</button>
 						<button
 							type="button"
@@ -222,50 +335,70 @@ export function ShopifyToken() {
 								</div>
 							</div>
 
-							<div>
-								<div className="mb-1.5 flex items-center justify-between gap-2">
-									<span className="text-sm font-medium text-ink">scope</span>
-									<button
-										type="button"
-										className="btn-ghost !px-2 !py-1 !text-xs"
-										onClick={() => copyField("scope", result.scope)}
-										disabled={!result.scope}
-									>
-										Copy
-									</button>
+							{typeof result.scope === "string" && (
+								<div>
+									<div className="mb-1.5 flex items-center justify-between gap-2">
+										<span className="text-sm font-medium text-ink">scope</span>
+										<button
+											type="button"
+											className="btn-ghost !px-2 !py-1 !text-xs"
+											onClick={() => copyField("scope", result.scope!)}
+											disabled={!result.scope}
+										>
+											Copy
+										</button>
+									</div>
+									<div className="code-panel break-all p-3 text-xs sm:text-sm">
+										{result.scope || "(none)"}
+									</div>
 								</div>
-								<div className="code-panel break-all p-3 text-xs sm:text-sm">
-									{result.scope || "(none)"}
-								</div>
-							</div>
+							)}
 
-							<div>
-								<div className="mb-1.5 flex items-center justify-between gap-2">
-									<span className="text-sm font-medium text-ink">
-										expires_in
-									</span>
-									<button
-										type="button"
-										className="btn-ghost !px-2 !py-1 !text-xs"
-										onClick={() =>
-											copyField("expires_in", String(result.expires_in))
-										}
-									>
-										Copy
-									</button>
+							{typeof result.expires_in === "number" ? (
+								<div>
+									<div className="mb-1.5 flex items-center justify-between gap-2">
+										<span className="text-sm font-medium text-ink">
+											expires_in
+										</span>
+										<button
+											type="button"
+											className="btn-ghost !px-2 !py-1 !text-xs"
+											onClick={() =>
+												copyField("expires_in", String(result.expires_in))
+											}
+										>
+											Copy
+										</button>
+									</div>
+									<div className="code-panel p-3 text-xs sm:text-sm">
+										{formatExpiresIn(result.expires_in)}
+									</div>
 								</div>
-								<div className="code-panel p-3 text-xs sm:text-sm">
-									{formatExpiresIn(result.expires_in)}
-								</div>
-							</div>
+							) : (
+								<p className="text-xs text-ink-muted">
+									No <code className="font-mono">expires_in</code> in the
+									response — this is often a long-lived offline token.
+								</p>
+							)}
 						</div>
 					) : (
 						!error && (
-							<div className="panel border-dashed bg-surface-muted p-5 sm:p-6 text-sm text-ink-muted">
-								Submit shop, client ID, and client secret to receive{" "}
-								<code className="font-mono text-ink">access_token</code>,{" "}
-								<code className="font-mono text-ink">scope</code>, and{" "}
-								<code className="font-mono text-ink">expires_in</code>.
+							<div className="panel border-dashed bg-surface-muted p-5 sm:p-6 text-sm text-ink-muted space-y-2">
+								<p>
+									1. Open the authorize URL while logged into Shopify.
+								</p>
+								<p>
+									2. Paste the redirect <code className="font-mono text-ink">code</code>{" "}
+									(or full URL).
+								</p>
+								<p>
+									3. Get token — response shows{" "}
+									<code className="font-mono text-ink">access_token</code>
+									{", "}
+									and <code className="font-mono text-ink">scope</code> /{" "}
+									<code className="font-mono text-ink">expires_in</code> when
+									present.
+								</p>
 							</div>
 						)
 					)}

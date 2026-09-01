@@ -1,4 +1,8 @@
 export { envToJson } from "./convertEnvToJson";
 export { notify } from "./toast";
 export { ping } from "./ping";
-export { normalizeShop } from "./normalizeShop";
+export {
+	normalizeShop,
+	buildAuthorizeUrl,
+	extractOAuthCode,
+} from "./normalizeShop";

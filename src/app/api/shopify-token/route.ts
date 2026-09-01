@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { normalizeShop } from "@/utils/normalizeShop";
+import { extractOAuthCode, normalizeShop } from "@/utils/normalizeShop";
 
 type TokenSuccess = {
 	access_token: string;
-	scope: string;
-	expires_in: number;
+	scope?: string;
+	expires_in?: number;
 };
 
 type TokenErrorBody = {
@@ -14,7 +14,7 @@ type TokenErrorBody = {
 };
 
 /**
- * Proxy for Shopify client credentials grant.
+ * Proxy for Shopify OAuth code → access_token exchange.
  * Credentials and tokens are request-scoped only — never logged or persisted.
  */
 export async function POST(request: NextRequest) {
@@ -36,7 +36,10 @@ export async function POST(request: NextRequest) {
 		);
 	}
 
-	const { shop, client_id, client_secret } = body as Record<string, unknown>;
+	const { shop, client_id, client_secret, code } = body as Record<
+		string,
+		unknown
+	>;
 
 	if (typeof shop !== "string" || !shop.trim()) {
 		return NextResponse.json(
@@ -59,6 +62,16 @@ export async function POST(request: NextRequest) {
 		);
 	}
 
+	if (typeof code !== "string" || !code.trim()) {
+		return NextResponse.json(
+			{
+				error: "invalid_request",
+				message: "Authorization code is required (paste the code or full redirect URL).",
+			},
+			{ status: 400 }
+		);
+	}
+
 	const shopDomain = normalizeShop(shop);
 	if (!shopDomain) {
 		return NextResponse.json(
@@ -66,6 +79,18 @@ export async function POST(request: NextRequest) {
 				error: "invalid_shop",
 				message:
 					"Invalid shop. Enter the store name (e.g. my-store) or my-store.myshopify.com.",
+			},
+			{ status: 400 }
+		);
+	}
+
+	const authCode = extractOAuthCode(code);
+	if (!authCode) {
+		return NextResponse.json(
+			{
+				error: "invalid_code",
+				message:
+					"Could not parse an OAuth code. Paste the code value or the full redirect URL containing ?code=...",
 			},
 			{ status: 400 }
 		);
@@ -82,9 +107,9 @@ export async function POST(request: NextRequest) {
 				Accept: "application/json",
 			},
 			body: new URLSearchParams({
-				grant_type: "client_credentials",
 				client_id: client_id.trim(),
 				client_secret: client_secret.trim(),
+				code: authCode,
 			}),
 			cache: "no-store",
 		});
@@ -127,42 +152,46 @@ export async function POST(request: NextRequest) {
 			(payload && "errors" in payload && payload.errors) ||
 			`Token request failed (${shopifyResponse.status}).`;
 
-		const rawText = String(raw);
-		const isShopNotPermitted =
-			/shop_not_permitted/i.test(rawText) ||
-			/client credentials cannot be performed/i.test(rawText);
-
 		return NextResponse.json(
 			{
-				error: isShopNotPermitted ? "shop_not_permitted" : "token_request_failed",
-				message: isShopNotPermitted
-					? "shop_not_permitted: Client credentials only work when the app and store belong to the same Shopify organization, and the app is installed on that store."
-					: rawText,
+				error: "token_request_failed",
+				message: String(raw),
 			},
-			{ status: shopifyResponse.status >= 400 && shopifyResponse.status < 600
-				? shopifyResponse.status
-				: 502 }
+			{
+				status:
+					shopifyResponse.status >= 400 && shopifyResponse.status < 600
+						? shopifyResponse.status
+						: 502,
+			}
 		);
 	}
 
 	const success = payload as TokenSuccess;
-	if (
-		!success?.access_token ||
-		typeof success.access_token !== "string" ||
-		typeof success.expires_in !== "number"
-	) {
+	if (!success?.access_token || typeof success.access_token !== "string") {
 		return NextResponse.json(
 			{
 				error: "invalid_response",
-				message: "Shopify response was missing required token fields.",
+				message: "Shopify response was missing access_token.",
 			},
 			{ status: 502 }
 		);
 	}
 
-	return NextResponse.json({
+	const response: {
+		access_token: string;
+		scope?: string;
+		expires_in?: number;
+	} = {
 		access_token: success.access_token,
-		scope: success.scope ?? "",
-		expires_in: success.expires_in,
-	});
+	};
+
+	if (typeof success.scope === "string") {
+		response.scope = success.scope;
+	}
+
+	if (typeof success.expires_in === "number") {
+		response.expires_in = success.expires_in;
+	}
+
+	return NextResponse.json(response);
 }

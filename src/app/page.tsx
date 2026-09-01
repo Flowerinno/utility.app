@@ -20,7 +20,7 @@ const tools = [
 	{
 		title: "Shopify Token",
 		description:
-			"Get an Admin API access token via client credentials — paste shop, client ID, and secret.",
+			"Authorize in Shopify, paste the redirect code, and exchange it for an Admin API access token.",
 		href: ROUTES.shopify_token,
 	},
 ] as const;
