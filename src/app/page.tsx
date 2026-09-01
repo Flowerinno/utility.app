@@ -17,6 +17,12 @@ const tools = [
 		description: "Browse and copy Liquid debug snippets for products, collections, and customers.",
 		href: ROUTES.shopify_snippets,
 	},
+	{
+		title: "Shopify Token",
+		description:
+			"Authorize in Shopify, paste the redirect code, and exchange it for an Admin API access token.",
+		href: ROUTES.shopify_token,
+	},
 ] as const;
 
 export default function Home() {
@@ -31,7 +37,8 @@ export default function Home() {
 				</h1>
 				<p className="page-subtitle mt-3 text-base sm:text-lg">
 					A focused set of everyday tools — convert env files, monitor API
-					health, and grab Shopify Liquid snippets without leaving the browser.
+					health, grab Shopify Liquid snippets, and fetch Admin API tokens
+					without leaving the browser.
 				</p>
 			</section>
 
