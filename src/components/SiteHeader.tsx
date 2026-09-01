@@ -6,7 +6,6 @@ import { ROUTES } from "@/lib";
 
 const NAV_ITEMS = [
 	{ label: "Env → JSON", href: ROUTES.envToJson },
-	{ label: "Status", href: ROUTES.status },
 	{ label: "Shopify Snippets", href: ROUTES.shopify_snippets },
 	{ label: "Shopify Token", href: ROUTES.shopify_token },
 ] as const;
