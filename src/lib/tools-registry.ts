@@ -51,6 +51,14 @@ export const TOOLS: Tool[] = [
 		category: "shopify",
 	},
 	{
+		id: "verify-token",
+		title: "Verify Token",
+		description:
+			"Check whether a Shopify Admin access token belongs to a given shop via GraphQL.",
+		href: ROUTES.verify_token,
+		category: "shopify",
+	},
+	{
 		id: "shopify-webhook-hmac",
 		title: "Webhook HMAC",
 		description:

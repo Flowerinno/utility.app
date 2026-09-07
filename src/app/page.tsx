@@ -15,7 +15,8 @@ export default function Home() {
 				</h1>
 				<p className="page-subtitle mt-3 text-base sm:text-lg">
 					A focused Shopify developer toolkit — debug Liquid, verify webhooks,
-					fetch tokens, run GraphQL, and handle everyday env conversions.
+					fetch and verify tokens, run GraphQL, and handle everyday env
+					conversions.
 				</p>
 			</section>
 
