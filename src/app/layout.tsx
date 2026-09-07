@@ -18,8 +18,9 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Utilito | App",
-	description: "Useful tools for everyday use.",
+	title: "Utilito | Shopify Developer Toolkit",
+	description:
+		"Shopify developer utilities — Liquid snippets, webhook HMAC, OAuth tokens, GraphQL, and more.",
 };
 
 export default function RootLayout({

@@ -2,16 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ROUTES } from "@/lib";
-
-const NAV_ITEMS = [
-	{ label: "Env → JSON", href: ROUTES.envToJson },
-	{ label: "Shopify Snippets", href: ROUTES.shopify_snippets },
-	{ label: "Shopify Token", href: ROUTES.shopify_token },
-] as const;
+import { getNavTools, getToolNavLabel } from "@/lib";
 
 export function SiteHeader() {
 	const pathname = usePathname();
+	const navItems = getNavTools();
 
 	return (
 		<header className="sticky top-0 z-40 border-b border-border bg-surface backdrop-blur-md">
@@ -32,7 +27,7 @@ export function SiteHeader() {
 					aria-label="Primary"
 					className="flex flex-wrap items-center gap-1"
 				>
-					{NAV_ITEMS.map((item) => {
+					{navItems.map((item) => {
 						const active =
 							pathname === item.href ||
 							pathname.startsWith(`${item.href}/`);
@@ -43,7 +38,7 @@ export function SiteHeader() {
 								className={`nav-link ${active ? "nav-link-active" : ""}`}
 								aria-current={active ? "page" : undefined}
 							>
-								{item.label}
+								{getToolNavLabel(item)}
 							</Link>
 						);
 					})}

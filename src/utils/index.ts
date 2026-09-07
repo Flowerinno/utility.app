@@ -5,3 +5,9 @@ export {
 	buildAuthorizeUrl,
 	extractOAuthCode,
 } from "./normalizeShop";
+export {
+	computeShopifyHmac,
+	hmacMatches,
+} from "./verifyShopifyHmac";
+export { buildShopAdminLinks } from "./buildShopAdminLinks";
+export type { AdminLink } from "./buildShopAdminLinks";

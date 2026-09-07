@@ -1,8 +1,11 @@
 import EnvToJson from "@/components/EnvToJson";
-import React from "react";
+import type { Metadata } from "next";
 
-const page = () => {
-	return <EnvToJson />;
+export const metadata: Metadata = {
+	title: "Env → JSON | Utilito",
+	description: "Convert .env file content into clean JSON in one click.",
 };
 
-export default page;
+export default function Page() {
+	return <EnvToJson />;
+}

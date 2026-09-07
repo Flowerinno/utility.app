@@ -1,24 +1,7 @@
 import Link from "next/link";
-import { ROUTES } from "@/lib";
+import { getToolsByCategory, TOOL_CATEGORIES, type ToolCategory } from "@/lib";
 
-const tools = [
-	{
-		title: "Env → JSON",
-		description: "Paste .env content and convert it into clean JSON in one click.",
-		href: ROUTES.envToJson,
-	},
-	{
-		title: "Shopify Snippets",
-		description: "Browse and copy Liquid debug snippets for products, collections, and customers.",
-		href: ROUTES.shopify_snippets,
-	},
-	{
-		title: "Shopify Token",
-		description:
-			"Authorize in Shopify, paste the redirect code, and exchange it for an Admin API access token.",
-		href: ROUTES.shopify_token,
-	},
-] as const;
+const CATEGORY_ORDER: ToolCategory[] = ["shopify", "general"];
 
 export default function Home() {
 	return (
@@ -31,41 +14,54 @@ export default function Home() {
 					Utilito
 				</h1>
 				<p className="page-subtitle mt-3 text-base sm:text-lg">
-					A focused set of everyday tools — convert env files, grab Shopify
-					Liquid snippets, and fetch Admin API tokens without leaving the
-					browser.
+					A focused Shopify developer toolkit — debug Liquid, verify webhooks,
+					fetch tokens, run GraphQL, and handle everyday env conversions.
 				</p>
 			</section>
 
-			<section
-				aria-label="Available tools"
-				className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-			>
-				{tools.map((tool, index) => (
-					<Link
-						key={tool.href}
-						href={tool.href}
-						className="panel group flex flex-col p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:shadow-lift"
-						style={{ animationDelay: `${index * 60}ms` }}
-					>
-						<h2 className="text-lg font-semibold text-ink group-hover:text-accent transition-colors">
-							{tool.title}
-						</h2>
-						<p className="mt-2 flex-1 text-sm leading-relaxed text-ink-muted">
-							{tool.description}
-						</p>
-						<span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
-							Open tool
-							<span
-								aria-hidden
-								className="transition-transform duration-200 group-hover:translate-x-0.5"
-							>
-								→
-							</span>
-						</span>
-					</Link>
-				))}
-			</section>
+			{CATEGORY_ORDER.map((category) => {
+				const tools = getToolsByCategory(category);
+				const meta = TOOL_CATEGORIES[category];
+
+				return (
+					<section key={category} className="mb-10 last:mb-0">
+						<div className="mb-4">
+							<h2 className="text-lg font-semibold text-ink">{meta.label}</h2>
+							<p className="mt-1 text-sm text-ink-muted">{meta.description}</p>
+						</div>
+
+						<div
+							aria-label={`${meta.label} tools`}
+							className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+						>
+							{tools.map((tool, index) => (
+								<Link
+									key={tool.href}
+									href={tool.href}
+									className="panel group flex flex-col p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent hover:shadow-lift"
+									style={{ animationDelay: `${index * 60}ms` }}
+								>
+									<h3 className="text-lg font-semibold text-ink transition-colors group-hover:text-accent">
+										{tool.title}
+									</h3>
+									<p className="mt-2 flex-1 text-sm leading-relaxed text-ink-muted">
+										{tool.description}
+									</p>
+									<span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-accent">
+										Open tool
+										<span
+											aria-hidden
+											className="transition-transform duration-200 group-hover:translate-x-0.5"
+										>
+											→
+										</span>
+									</span>
+								</Link>
+							))}
+						</div>
+					</section>
+				);
+			})}
 		</main>
 	);
 }
