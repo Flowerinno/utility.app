@@ -1,16 +1,28 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import {
+	shopifySnippets,
+	snippetCategoryNames,
+} from "@/data/shopify-snippets";
 
 export function ShopifySnippets() {
 	const [query, setQuery] = useState("");
+	const [activeCategory, setActiveCategory] = useState<string | null>(null);
 	const [copiedTitle, setCopiedTitle] = useState<string | null>(null);
 	const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
 
 	const filtered = useMemo(() => {
 		const q = query.trim().toLowerCase();
-		if (!q) return snippets;
-		return snippets
+		let categories = shopifySnippets;
+
+		if (activeCategory) {
+			categories = categories.filter((cat) => cat.name === activeCategory);
+		}
+
+		if (!q) return categories;
+
+		return categories
 			.map((cat) => ({
 				...cat,
 				snippets: cat.snippets.filter((s) => {
@@ -21,7 +33,7 @@ export function ShopifySnippets() {
 				}),
 			}))
 			.filter((cat) => cat.snippets.length > 0);
-	}, [query]);
+	}, [query, activeCategory]);
 
 	async function copyToClipboard(text: string, title: string) {
 		try {
@@ -41,6 +53,34 @@ export function ShopifySnippets() {
 					Search, expand, and copy Liquid debug snippets for common Shopify
 					objects.
 				</p>
+			</div>
+
+			<div className="mb-4 flex flex-wrap gap-2">
+				<button
+					type="button"
+					onClick={() => setActiveCategory(null)}
+					className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+						activeCategory === null
+							? "bg-accent text-white"
+							: "bg-surface-muted text-ink-muted hover:text-ink"
+					}`}
+				>
+					All
+				</button>
+				{snippetCategoryNames.map((name) => (
+					<button
+						key={name}
+						type="button"
+						onClick={() => setActiveCategory(name)}
+						className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+							activeCategory === name
+								? "bg-accent text-white"
+								: "bg-surface-muted text-ink-muted hover:text-ink"
+						}`}
+					>
+						{name}
+					</button>
+				))}
 			</div>
 
 			<div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -145,141 +185,3 @@ export function ShopifySnippets() {
 		</main>
 	);
 }
-
-const snippets = [
-	{
-		name: "Product",
-		snippets: [
-			{
-				title: "Console log Product info",
-				code: `
-<script>
-        console.table({
-              id: {{product.id | json}},
-              collections: {{product.collections | json}},
-              title: {{product.title | json}},
-              handle: {{product.handle | json}},
-              vendor: {{product.vendor | json}},
-              type: {{product.type | json}},
-              tags: {{product.tags | json}},
-              price: {{product.price | money | json}},
-              compare_at_price: {{product.compare_at_price | money | json}},
-              url: {{product.url | json}},
-              available: {{product.available | json}},
-              created_at: {{product.created_at | json}},
-              updated_at: {{product.updated_at | json}},
-              category: {{ product.category | json }},
-              metafields: "product.metafields.{namespace}.{key}.value"
-        })
-      </script>
-        `,
-			},
-		],
-	},
-	{
-		name: "Collection",
-		snippets: [
-			{
-				title: "Console log Collection info",
-				code: `
-<script>
-        console.table({
-              id: {{collection.id | json }},
-              title: {{collection.title | json }},
-              handle: {{collection.handle | json }},
-              url: {{collection.url | json }},
-              description: {{collection.description | json }},
-              created_at: {{collection.created_at | json }},
-              updated_at: {{collection.updated_at | json }},
-              products_count: {{ collection.products_count | json }},
-              default_sort_by: {{ collection.default_sort_by | json }},
-              current_sort_by: {{ collection.sort_by | json }},
-              all_tags: {{ collection.all_tags | json }},
-              filters: [
-                {% for filter in collection.filters %}
-                  {
-                    type: {{ filter.type | json }},
-                    label: {{ filter.label | json }},
-                    param_name: {{ filter.param_name | json }},
-                    values: [
-                      {% for value in filter.values %}
-                        {
-                          label: {{ value.label | json }},
-                          value: {{ value.value | json }},
-                          count: {{ value.count | json }},
-                          active: {{ value.active | json }},
-                          param_name: {{ value.param_name | json }},
-                        }{% unless forloop.last %},{% endunless %}
-                      {% endfor %}
-                    ],
-                    {% if filter.type == 'price_range' %}
-                      min_value: {
-                        value: {{ filter.min_value.value | json }},
-                        param_name: {{ filter.min_value.param_name | json }},
-                      },
-                      max_value: {
-                        value: {{ filter.max_value.value | json }},
-                        param_name: {{ filter.max_value.param_name | json }},
-                      },
-                      range_max: {{ filter.range_max | json }},
-                    {% endif %}
-                  }{% unless forloop.last %},{% endunless %}
-                {% endfor %}
-              ],
-              metafields: "collection.metafields.{namespace}.{key}.value"
-
-        })
-      </script>`,
-			},
-		],
-	},
-	{
-		name: "Customer",
-		snippets: [
-			{
-				title: "Console log Customer info",
-				code: `
-<script>
-  console.table({
-   id: {{ customer.id | json }},
-   total_spent: {{ customer.total_spent | json }},
-   total_spent_in_dollars: {{ customer.total_spent | divided_by: 100.0 | json }},
-   orders_count: {{ customer.orders.size | json }},
-   first_name: {{ customer.first_name | json }},
-   last_name: {{ customer.last_name | json }},
-   email: {{ customer.email | json }},
-   tags: {{ customer.tags | json }},
-   is_logged_in: "if customer",
-   orders: [
-      {% for order in customer.orders %}
-        {
-          id: {{ order.id | json }},
-          name: {{ order.name | json }},
-          total_price: {{ order.total_price | json }},
-          total_price_in_dollars: {{ order.total_price | divided_by: 100.0 | json }},
-          created_at: "{{ order.created_at}}",
-          financial_status: {{ order.financial_status | json }},
-          fulfillment_status: {{ order.fulfillment_status | json }},
-          line_items: [
-            {% for line_item in order.line_items %}
-              {
-                id: {{ line_item.id | json }},
-                title: {{ line_item.title | json }},
-                quantity: {{ line_item.quantity | json }},
-                fulfillment: {
-                  tracking_number: {{ line_item.fulfillment.tracking_number | json }},
-                  tracking_url: {{ line_item.fulfillment.tracking_url | json }}
-                }
-              }{% unless forloop.last %},{% endunless %}
-            {% endfor %}
-          ]
-        }{% unless forloop.last %},{% endunless %}
-      {% endfor %}
-   ]
-  })
-</script>
-        `,
-			},
-		],
-	},
-];

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { extractOAuthCode, normalizeShop } from "@/utils/normalizeShop";
 
 type TokenSuccess = {
@@ -18,6 +19,32 @@ type TokenErrorBody = {
  * Credentials and tokens are request-scoped only — never logged or persisted.
  */
 export async function POST(request: NextRequest) {
+	const ip = getClientIp(request);
+	const rate = checkRateLimit(`shopify-token:${ip}`, { limit: 20, windowMs: 60_000 });
+
+	if (!rate.allowed) {
+		return NextResponse.json(
+			{
+				error: "rate_limit_exceeded",
+				message: `Too many requests. Try again in ${rate.retryAfterSec}s.`,
+			},
+			{
+				status: 429,
+				headers: rate.retryAfterSec
+					? { "Retry-After": String(rate.retryAfterSec) }
+					: undefined,
+			}
+		);
+	}
+
+	const contentLength = request.headers.get("content-length");
+	if (contentLength && Number(contentLength) > 10_000) {
+		return NextResponse.json(
+			{ error: "invalid_request", message: "Request body too large." },
+			{ status: 413 }
+		);
+	}
+
 	let body: unknown;
 
 	try {

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { PrivacyNotice } from "@/components/PrivacyNotice";
 import {
 	buildAuthorizeUrl,
 	extractOAuthCode,
@@ -134,6 +135,8 @@ export function ShopifyToken() {
 					single-POST client credentials grant.
 				</p>
 			</div>
+
+			<PrivacyNotice />
 
 			<div className="grid gap-6 lg:grid-cols-2">
 				<form onSubmit={onGetToken} className="panel p-5 sm:p-6 space-y-4">
